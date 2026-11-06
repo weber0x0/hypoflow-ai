@@ -4,12 +4,13 @@
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Status](https://img.shields.io/badge/status-prototype--live-emerald.svg)
+[![Live Demo](https://img.shields.io/badge/demo-GitHub%20Pages-success.svg)](https://weber0x0.github.io/hypoflow-ai/)
 ![Frontend](https://img.shields.io/badge/frontend-Tailwind%20%7C%20Lucide%20%7C%20Chart.js-6366F1.svg)
 ![Backend](https://img.shields.io/badge/backend-Python%203.14-06B6D4.svg)
 
 **Turn creative guesswork into structured, data-driven experiments.**
 
-[Live Prototype](#-quick-start) • [Core Features](#-features) • [Screenshots](#-screenshots) • [Architecture](#-architecture)
+[🌐 Live Online Demo](https://weber0x0.github.io/hypoflow-ai/) • [Live Prototype](#-quick-start) • [Core Features](#-features) • [Screenshots](#-screenshots) • [Architecture](#-architecture)
 
 </div>
 
