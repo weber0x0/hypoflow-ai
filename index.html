@@ -1,0 +1,2033 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hypoflow AI — Data-Driven Creative Experimentation Platform</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            display: ['"Syne"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#EEF2FF',
+              100: '#E0E7FF',
+              400: '#818CF8',
+              500: '#6366F1',
+              600: '#4F46E5',
+              cyan: '#06B6D4',
+              emerald: '#10B981',
+              amber: '#F59E0B',
+              rose: '#F43F5E',
+              violet: '#8B5CF6',
+            },
+            surface: {
+              950: '#07080B',
+              900: '#0D0F14',
+              850: '#13161F',
+              800: '#1A1E2B',
+              750: '#222838',
+              700: '#2C3449',
+              600: '#3D4763',
+            }
+          },
+          animation: {
+            'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'glow': 'glow 2s ease-in-out infinite alternate',
+          },
+          keyframes: {
+            glow: {
+              '0%': { boxShadow: '0 0 15px rgba(99, 102, 241, 0.2)' },
+              '100%': { boxShadow: '0 0 30px rgba(99, 102, 241, 0.5)' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <style>
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0D0F14;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #2C3449;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #4F46E5;
+    }
+    
+    .glass-card {
+      background: rgba(19, 22, 31, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-card-hover:hover {
+      border-color: rgba(99, 102, 241, 0.4);
+      box-shadow: 0 12px 30px -10px rgba(99, 102, 241, 0.2);
+    }
+    .neon-border-indigo {
+      box-shadow: inset 0 0 0 1px rgba(99, 102, 241, 0.4), 0 0 20px -5px rgba(99, 102, 241, 0.3);
+    }
+    .neon-border-emerald {
+      box-shadow: inset 0 0 0 1px rgba(16, 185, 129, 0.4), 0 0 20px -5px rgba(16, 185, 129, 0.3);
+    }
+    
+    /* Background grid effect */
+    .bg-grid {
+      background-size: 32px 32px;
+      background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    }
+  </style>
+</head>
+<body class="bg-surface-950 text-slate-100 min-h-screen flex flex-col font-sans antialiased bg-grid selection:bg-brand-500 selection:text-white">
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2.5 max-w-sm pointer-events-none"></div>
+
+  <!-- Top Navigation Bar -->
+  <header class="sticky top-0 z-40 border-b border-surface-800 bg-surface-950/85 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      
+      <!-- Logo & Branding -->
+      <div class="flex items-center gap-6">
+        <div class="flex items-center gap-3 cursor-pointer" onclick="switchTab('hypotheses')">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 via-brand-500 to-brand-cyan p-0.5 shadow-lg shadow-brand-500/20 flex items-center justify-center">
+            <div class="w-full h-full bg-surface-950 rounded-[10px] flex items-center justify-center">
+              <i data-lucide="flask-conical" class="w-5 h-5 text-brand-400"></i>
+            </div>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-display font-extrabold text-lg tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-slate-400">HYPOFLOW</span>
+              <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-brand-500/20 text-brand-400 border border-brand-500/30">AI v1.4</span>
+            </div>
+            <p class="text-[11px] text-slate-400 font-medium">Creative Experimentation OS</p>
+          </div>
+        </div>
+
+        <!-- Brand Switcher Pill -->
+        <div class="hidden md:flex items-center gap-2 bg-surface-900 border border-surface-750 rounded-lg px-2.5 py-1.5 text-xs">
+          <i data-lucide="store" class="w-3.5 h-3.5 text-slate-400"></i>
+          <span class="text-slate-400">Project:</span>
+          <select id="brand-select" onchange="changeBrand(this.value)" class="bg-transparent text-white font-semibold outline-none cursor-pointer">
+            <option value="lumina" class="bg-surface-900 text-white">Lumina Nootropics (DTC)</option>
+            <option value="aurasleep" class="bg-surface-900 text-white">AuraSleep Ring (HealthTech)</option>
+            <option value="novaflow" class="bg-surface-900 text-white">NovaFlow SaaS (B2B)</option>
+          </select>
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse ml-1"></span>
+        </div>
+      </div>
+
+      <!-- Center Nav Tabs -->
+      <nav class="hidden lg:flex items-center gap-1 bg-surface-900/90 border border-surface-800 p-1 rounded-xl">
+        <button onclick="switchTab('hypotheses')" id="tab-btn-hypotheses" class="tab-button flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all bg-brand-600 text-white shadow-sm">
+          <i data-lucide="test-tube-2" class="w-4 h-4"></i>
+          <span>Hypotheses</span>
+          <span id="badge-hypo-count" class="px-1.5 py-0.2 rounded-full bg-black/25 text-[10px]">8</span>
+        </button>
+        <button onclick="switchTab('variants')" id="tab-btn-variants" class="tab-button flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all text-slate-400 hover:text-slate-200 hover:bg-surface-800">
+          <i data-lucide="layers" class="w-4 h-4"></i>
+          <span>Variant Tracking</span>
+          <span id="badge-variant-count" class="px-1.5 py-0.2 rounded-full bg-surface-750 text-[10px]">24</span>
+        </button>
+        <button onclick="switchTab('attribution')" id="tab-btn-attribution" class="tab-button flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all text-slate-400 hover:text-slate-200 hover:bg-surface-800">
+          <i data-lucide="line-chart" class="w-4 h-4"></i>
+          <span>Performance Attribution</span>
+        </button>
+        <button onclick="switchTab('playbook')" id="tab-btn-playbook" class="tab-button flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all text-slate-400 hover:text-slate-200 hover:bg-surface-800">
+          <i data-lucide="book-marked" class="w-4 h-4"></i>
+          <span>Playbook Engine</span>
+          <span class="w-1.5 h-1.5 rounded-full bg-brand-cyan"></span>
+        </button>
+        <button onclick="switchTab('sandbox')" id="tab-btn-sandbox" class="tab-button flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all text-slate-400 hover:text-slate-200 hover:bg-surface-800">
+          <i data-lucide="smartphone" class="w-4 h-4"></i>
+          <span>Ad Studio Sandbox</span>
+        </button>
+      </nav>
+
+      <!-- Right Action CTAs -->
+      <div class="flex items-center gap-2.5">
+        <button onclick="openAiGeneratorModal()" class="flex items-center gap-1.5 bg-gradient-to-r from-brand-600 to-brand-violet hover:from-brand-500 hover:to-brand-500 text-white text-xs font-semibold px-3 py-2 rounded-lg transition-all shadow-md shadow-brand-500/20 active:scale-95">
+          <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-300"></i>
+          <span>Generate with AI</span>
+        </button>
+        
+        <button onclick="openNewHypothesisModal()" class="flex items-center gap-1.5 bg-surface-800 hover:bg-surface-750 text-slate-200 border border-surface-700 text-xs font-semibold px-3 py-2 rounded-lg transition-all active:scale-95">
+          <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+          <span class="hidden sm:inline">New Hypothesis</span>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Mobile Sub-nav (only on small screens) -->
+  <div class="lg:hidden border-b border-surface-800 bg-surface-900/90 px-4 py-2 overflow-x-auto flex gap-2">
+    <button onclick="switchTab('hypotheses')" class="mobile-tab-btn text-xs font-medium px-3 py-1.5 rounded-md bg-brand-600 text-white whitespace-nowrap">Hypotheses</button>
+    <button onclick="switchTab('variants')" class="mobile-tab-btn text-xs font-medium px-3 py-1.5 rounded-md text-slate-400 hover:text-white whitespace-nowrap">Variants</button>
+    <button onclick="switchTab('attribution')" class="mobile-tab-btn text-xs font-medium px-3 py-1.5 rounded-md text-slate-400 hover:text-white whitespace-nowrap">Attribution</button>
+    <button onclick="switchTab('playbook')" class="mobile-tab-btn text-xs font-medium px-3 py-1.5 rounded-md text-slate-400 hover:text-white whitespace-nowrap">Playbook</button>
+    <button onclick="switchTab('sandbox')" class="mobile-tab-btn text-xs font-medium px-3 py-1.5 rounded-md text-slate-400 hover:text-white whitespace-nowrap">Ad Sandbox</button>
+  </div>
+
+  <!-- Global Metrics HUD Bar -->
+  <section class="border-b border-surface-850 bg-surface-900/40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+      <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+        <div class="flex flex-col">
+          <span class="text-[11px] text-slate-400 uppercase tracking-wider font-mono">Active Hypotheses</span>
+          <div class="flex items-baseline gap-2 mt-0.5">
+            <span class="text-xl font-bold font-mono text-white" id="stat-active-hypo">8</span>
+            <span class="text-[11px] text-brand-emerald font-semibold flex items-center">
+              <i data-lucide="arrow-up-right" class="w-3 h-3"></i> +3 this wk
+            </span>
+          </div>
+        </div>
+        
+        <div class="flex flex-col">
+          <span class="text-[11px] text-slate-400 uppercase tracking-wider font-mono">Active Variants</span>
+          <div class="flex items-baseline gap-2 mt-0.5">
+            <span class="text-xl font-bold font-mono text-white" id="stat-active-variants">24</span>
+            <span class="text-[11px] text-slate-400">across 3 platforms</span>
+          </div>
+        </div>
+
+        <div class="flex flex-col">
+          <span class="text-[11px] text-slate-400 uppercase tracking-wider font-mono">Experiment Win Rate</span>
+          <div class="flex items-baseline gap-2 mt-0.5">
+            <span class="text-xl font-bold font-mono text-brand-emerald" id="stat-win-rate">62.5%</span>
+            <span class="text-[11px] text-emerald-400 font-mono">5/8 confirmed</span>
+          </div>
+        </div>
+
+        <div class="flex flex-col">
+          <span class="text-[11px] text-slate-400 uppercase tracking-wider font-mono">Creative Lift (ROAS)</span>
+          <div class="flex items-baseline gap-2 mt-0.5">
+            <span class="text-xl font-bold font-mono text-brand-cyan" id="stat-roas-lift">+38.4%</span>
+            <span class="text-[11px] text-slate-400">vs control baseline</span>
+          </div>
+        </div>
+
+        <div class="flex flex-col">
+          <span class="text-[11px] text-slate-400 uppercase tracking-wider font-mono">Mean Thumbstop (3s)</span>
+          <div class="flex items-baseline gap-2 mt-0.5">
+            <span class="text-xl font-bold font-mono text-white" id="stat-thumbstop">37.8%</span>
+            <span class="text-[11px] text-brand-emerald font-semibold">+9.2%</span>
+          </div>
+        </div>
+
+        <div class="flex flex-col">
+          <span class="text-[11px] text-slate-400 uppercase tracking-wider font-mono">Brand Rules Codified</span>
+          <div class="flex items-baseline gap-2 mt-0.5">
+            <span class="text-xl font-bold font-mono text-brand-violet" id="stat-rules-count">12</span>
+            <span class="text-[11px] text-slate-400">Playbook Engine</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Content Area -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- ========================================== -->
+    <!-- TAB 1: HYPOTHESIS FORMULATION -->
+    <!-- ========================================== -->
+    <section id="view-hypotheses" class="space-y-6">
+      
+      <!-- Section Header & Controls -->
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface-900/60 p-4 rounded-2xl border border-surface-800">
+        <div>
+          <h1 class="text-xl font-display font-bold text-white flex items-center gap-2.5">
+            <span>Hypothesis Formulation & Experiment Cards</span>
+            <span class="text-xs font-mono font-normal px-2 py-0.5 rounded-full bg-brand-500/10 text-brand-400 border border-brand-500/20">Turn angles into science</span>
+          </h1>
+          <p class="text-xs text-slate-400 mt-1">Every test card isolates a specific Hook, Visual Angle, and CTA. Validate before scaling ad budgets.</p>
+        </div>
+
+        <!-- Filter Controls -->
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- Search -->
+          <div class="relative">
+            <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+            <input type="text" id="hypo-search" oninput="filterHypotheses()" placeholder="Search hypotheses, hooks, angles..." class="bg-surface-850 border border-surface-750 text-xs rounded-lg pl-8 pr-3 py-2 text-white placeholder-slate-500 focus:outline-none focus:border-brand-500 w-52 sm:w-64">
+          </div>
+
+          <!-- Status Filter -->
+          <select id="hypo-status-filter" onchange="filterHypotheses()" class="bg-surface-850 border border-surface-750 text-xs rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-brand-500">
+            <option value="all">All Statuses</option>
+            <option value="winner">Winner (Confirmed)</option>
+            <option value="active">Active Running</option>
+            <option value="validating">Validating</option>
+            <option value="inconclusive">Inconclusive</option>
+          </select>
+
+          <!-- Category Filter -->
+          <select id="hypo-category-filter" onchange="filterHypotheses()" class="bg-surface-850 border border-surface-750 text-xs rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-brand-500">
+            <option value="all">All Angles</option>
+            <option value="Pain-Agitation">Pain-Agitation</option>
+            <option value="Proof-Mechanism">Proof-Mechanism</option>
+            <option value="Status-Identity">Status-Identity</option>
+            <option value="Contrarian-Myth">Contrarian-Myth</option>
+          </select>
+
+          <button onclick="simulateTrafficBatch()" title="Simulate 2,000 ad impressions" class="flex items-center gap-1.5 bg-surface-800 hover:bg-surface-750 border border-surface-700 text-xs font-medium px-3 py-2 rounded-lg text-slate-300">
+            <i data-lucide="play" class="w-3 h-3 text-brand-emerald"></i>
+            <span>Simulate Traffic</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Hypothesis Cards Grid -->
+      <div id="hypotheses-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <!-- Rendered Dynamically via JavaScript -->
+      </div>
+
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 2: VARIANT TRACKING -->
+    <!-- ========================================== -->
+    <section id="view-variants" class="hidden space-y-6">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface-900/60 p-4 rounded-2xl border border-surface-800">
+        <div>
+          <h1 class="text-xl font-display font-bold text-white flex items-center gap-2.5">
+            <span>Creative Asset & Variant Mapping Matrix</span>
+            <span class="text-xs font-mono font-normal px-2 py-0.5 rounded-full bg-brand-cyan/10 text-brand-cyan border border-brand-cyan/20">Zero attribution drift</span>
+          </h1>
+          <p class="text-xs text-slate-400 mt-1">Directly bind video cuts, static carousels, and copy variants to test hypotheses.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="openNewVariantModal()" class="flex items-center gap-1.5 bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold px-3 py-2 rounded-lg shadow-sm">
+            <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
+            <span>Register Asset Variant</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Variants Table Card -->
+      <div class="glass-card rounded-2xl overflow-hidden border border-surface-800">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-surface-900/80 text-slate-400 uppercase font-mono border-b border-surface-800">
+              <tr>
+                <th class="py-3 px-4">Variant ID / Asset</th>
+                <th class="py-3 px-4">Mapped Hypothesis</th>
+                <th class="py-3 px-4">Hook Execution</th>
+                <th class="py-3 px-4">Visual Format</th>
+                <th class="py-3 px-4 text-right">Spend</th>
+                <th class="py-3 px-4 text-right">Thumbstop (3s)</th>
+                <th class="py-3 px-4 text-right">ROAS</th>
+                <th class="py-3 px-4 text-center">Status</th>
+                <th class="py-3 px-4 text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="variants-table-body" class="divide-y divide-surface-800/60 text-slate-200">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 3: PERFORMANCE ATTRIBUTION -->
+    <!-- ========================================== -->
+    <section id="view-attribution" class="hidden space-y-6">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface-900/60 p-4 rounded-2xl border border-surface-800">
+        <div>
+          <h1 class="text-xl font-display font-bold text-white flex items-center gap-2.5">
+            <span>Performance Attribution & Creative DNA</span>
+            <span class="text-xs font-mono font-normal px-2 py-0.5 rounded-full bg-brand-emerald/10 text-brand-emerald border border-brand-emerald/20">Deconstruct What Converts</span>
+          </h1>
+          <p class="text-xs text-slate-400 mt-1">Isolate whether ROAS is driven by the Hook, the Proof Visual, or the CTA Offer.</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="text-xs text-slate-400">Date Range:</span>
+          <select class="bg-surface-850 border border-surface-750 text-xs rounded-lg px-2.5 py-1.5 text-white">
+            <option>Last 30 Days (Active Sprint)</option>
+            <option>Last 7 Days</option>
+            <option>All Time</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Charts Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Hook Category ROAS Chart -->
+        <div class="glass-card p-5 rounded-2xl border border-surface-800 flex flex-col">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="text-sm font-bold text-white">Hook Angle vs. ROAS Lift</h3>
+              <p class="text-[11px] text-slate-400">Attributed ROAS multiplier by opening hook category</p>
+            </div>
+            <span class="text-[10px] font-mono text-brand-cyan bg-brand-cyan/10 px-2 py-0.5 rounded">Attribution v2</span>
+          </div>
+          <div class="flex-1 min-h-[220px] relative">
+            <canvas id="chart-hook-attribution"></canvas>
+          </div>
+          <div class="mt-3 pt-3 border-t border-surface-800/80 flex items-center justify-between text-[11px] text-slate-400">
+            <span>Top Performing Angle:</span>
+            <span class="text-brand-emerald font-semibold">Contrarian Myth (3.82x)</span>
+          </div>
+        </div>
+
+        <!-- Visual Format Thumbstop Chart -->
+        <div class="glass-card p-5 rounded-2xl border border-surface-800 flex flex-col">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="text-sm font-bold text-white">Visual Format Thumbstop Rate (3s)</h3>
+              <p class="text-[11px] text-slate-400">% of audience watching past the first 3 seconds</p>
+            </div>
+            <span class="text-[10px] font-mono text-brand-indigo bg-brand-indigo/10 px-2 py-0.5 rounded">Hook Retention</span>
+          </div>
+          <div class="flex-1 min-h-[220px] relative">
+            <canvas id="chart-visual-retention"></canvas>
+          </div>
+          <div class="mt-3 pt-3 border-t border-surface-800/80 flex items-center justify-between text-[11px] text-slate-400">
+            <span>Winner:</span>
+            <span class="text-brand-indigo font-semibold">Microscope & Heatmap (46.2%)</span>
+          </div>
+        </div>
+
+        <!-- CTA Conversion Rate Chart -->
+        <div class="glass-card p-5 rounded-2xl border border-surface-800 flex flex-col">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="text-sm font-bold text-white">CTA Angle vs. CVR</h3>
+              <p class="text-[11px] text-slate-400">Direct comparison of offer framing closing rate</p>
+            </div>
+            <span class="text-[10px] font-mono text-brand-emerald bg-brand-emerald/10 px-2 py-0.5 rounded">Conversion</span>
+          </div>
+          <div class="flex-1 min-h-[220px] relative">
+            <canvas id="chart-cta-cvr"></canvas>
+          </div>
+          <div class="mt-3 pt-3 border-t border-surface-800/80 flex items-center justify-between text-[11px] text-slate-400">
+            <span>Highest CVR:</span>
+            <span class="text-emerald-400 font-semibold">Diagnostic Quiz CTA (14.6%)</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Statistical Significance & Bayesian Lift Deep Dive -->
+      <div class="glass-card p-6 rounded-2xl border border-surface-800 space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-surface-800 pb-4">
+          <div>
+            <h2 class="text-base font-bold text-white flex items-center gap-2">
+              <i data-lucide="scale" class="w-4 h-4 text-brand-amber"></i>
+              <span>Statistical Confidence & Challenger Face-Off</span>
+            </h2>
+            <p class="text-xs text-slate-400">Bayesian decision engine calculating probability of beating the historical baseline</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-slate-400">Comparing:</span>
+            <span class="text-xs font-mono bg-surface-850 px-2.5 py-1 rounded border border-surface-750 text-slate-300">HYP-101 (Challenger) vs Control V0</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
+          <div class="bg-surface-900/80 p-4 rounded-xl border border-surface-800">
+            <div class="text-[11px] text-slate-400 uppercase font-mono">Statistical Confidence</div>
+            <div class="text-3xl font-mono font-bold text-brand-emerald mt-1">99.2%</div>
+            <div class="text-xs text-emerald-400/90 mt-1 flex items-center gap-1">
+              <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
+              <span>Statistically significant winner!</span>
+            </div>
+            <div class="w-full bg-surface-800 h-1.5 rounded-full mt-3 overflow-hidden">
+              <div class="bg-brand-emerald h-full rounded-full" style="width: 99.2%"></div>
+            </div>
+            <p class="text-[11px] text-slate-400 mt-2">P-value &lt; 0.001. Risk of false positive is less than 0.8%.</p>
+          </div>
+
+          <div class="bg-surface-900/80 p-4 rounded-xl border border-surface-800">
+            <div class="text-[11px] text-slate-400 uppercase font-mono">Net Attributed Lift</div>
+            <div class="text-3xl font-mono font-bold text-brand-cyan mt-1">+41.2%</div>
+            <div class="text-xs text-slate-300 mt-1">ROAS moved from 2.42x to 3.42x</div>
+            <div class="flex items-center justify-between text-[11px] text-slate-400 mt-3 pt-2 border-t border-surface-800">
+              <span>Expected Annualized Gain:</span>
+              <span class="text-white font-mono font-bold">+$148,000</span>
+            </div>
+          </div>
+
+          <div class="bg-surface-900/80 p-4 rounded-xl border border-surface-800 flex flex-col justify-between">
+            <div>
+              <div class="text-[11px] text-slate-400 uppercase font-mono">Playbook Recommendation</div>
+              <div class="text-sm font-semibold text-white mt-1">Retire Control immediately</div>
+              <p class="text-xs text-slate-400 mt-1">Codify "Cortisol Alarmist + Brain Heatmap" into the Master Brand Playbook.</p>
+            </div>
+            <button onclick="promoteHypothesisToPlaybook('HYP-101')" class="w-full mt-3 flex items-center justify-center gap-2 bg-gradient-to-r from-brand-emerald to-emerald-600 hover:from-emerald-500 hover:to-emerald-500 text-white text-xs font-semibold py-2 px-3 rounded-lg shadow-sm">
+              <i data-lucide="award" class="w-3.5 h-3.5"></i>
+              <span>One-Click Codify to Playbook</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 4: PLAYBOOK ENGINE -->
+    <!-- ========================================== -->
+    <section id="view-playbook" class="hidden space-y-6">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface-900/60 p-4 rounded-2xl border border-surface-800">
+        <div>
+          <h1 class="text-xl font-display font-bold text-white flex items-center gap-2.5">
+            <span>Automated Brand Playbook Engine</span>
+            <span class="text-xs font-mono font-normal px-2 py-0.5 rounded-full bg-brand-violet/20 text-brand-violet border border-brand-violet/30">Auto-codified brand intelligence</span>
+          </h1>
+          <p class="text-xs text-slate-400 mt-1">Winning experiments automatically synthesized into immutable creative rules and production guidelines.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="exportPlaybookMarkdown()" class="flex items-center gap-1.5 bg-surface-800 hover:bg-surface-750 border border-surface-700 text-slate-200 text-xs font-medium px-3 py-2 rounded-lg">
+            <i data-lucide="download" class="w-3.5 h-3.5"></i>
+            <span>Export Brief (Markdown)</span>
+          </button>
+          <button onclick="openAddRuleModal()" class="flex items-center gap-1.5 bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold px-3 py-2 rounded-lg shadow-sm">
+            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+            <span>Add Playbook Rule</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Playbook Rules Container -->
+      <div id="playbook-rules-list" class="space-y-4">
+        <!-- Rendered Dynamically -->
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 5: AD STUDIO SANDBOX -->
+    <!-- ========================================== -->
+    <section id="view-sandbox" class="hidden space-y-6">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface-900/60 p-4 rounded-2xl border border-surface-800">
+        <div>
+          <h1 class="text-xl font-display font-bold text-white flex items-center gap-2.5">
+            <span>Ad Studio & Retention Simulator</span>
+            <span class="text-xs font-mono font-normal px-2 py-0.5 rounded-full bg-brand-rose/20 text-brand-rose border border-brand-rose/30">TikTok & Meta Reel Simulator</span>
+          </h1>
+          <p class="text-xs text-slate-400 mt-1">Test creative pacing, dynamic hook text, and real-time thumbstop telemetry before spending a dollar.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-slate-400">Aspect Ratio:</span>
+          <button class="px-2.5 py-1 text-xs rounded bg-brand-600 text-white font-mono">9:16 Mobile</button>
+          <button class="px-2.5 py-1 text-xs rounded bg-surface-800 text-slate-400 font-mono">4:5 Feed</button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        <!-- Mobile Frame Mockup (Left 5 cols) -->
+        <div class="lg:col-span-5 flex justify-center">
+          <div class="relative w-[320px] h-[640px] bg-black rounded-[42px] border-[6px] border-surface-700 shadow-2xl overflow-hidden flex flex-col justify-between select-none">
+            
+            <!-- Phone Notch / Dynamic Island -->
+            <div class="absolute top-2 left-1/2 -translate-x-1/2 w-28 h-4 bg-surface-800 rounded-full z-30"></div>
+            
+            <!-- Simulated Video Canvas / Background -->
+            <div id="sandbox-screen" class="absolute inset-0 bg-gradient-to-b from-slate-900 via-indigo-950 to-surface-950 flex flex-col justify-between p-4 pt-10 text-white transition-all duration-700">
+              
+              <!-- Subtle animated particle or gradient mesh background -->
+              <div class="absolute inset-0 opacity-40 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-brand-indigo via-brand-cyan/20 to-transparent pointer-events-none"></div>
+
+              <!-- Top Telemetry HUD Overlay -->
+              <div class="relative z-20 flex items-center justify-between text-[11px] font-mono bg-black/50 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10">
+                <div class="flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-brand-rose animate-ping"></span>
+                  <span class="text-slate-300">THUMBSTOP ZONE</span>
+                </div>
+                <div class="text-amber-300 font-bold" id="sandbox-timer">0.0s / 3.0s</div>
+              </div>
+
+              <!-- Center Dynamic Hook Simulation -->
+              <div class="relative z-20 my-auto text-center space-y-3 px-2">
+                <div class="inline-block px-2.5 py-1 rounded bg-black/60 border border-white/15 text-[10px] font-mono text-brand-cyan uppercase tracking-wider">
+                  Tested Angle: <span id="sandbox-angle-tag">Cortisol Shock</span>
+                </div>
+                
+                <div id="sandbox-hook-caption" class="text-lg font-display font-extrabold leading-tight tracking-wide text-white drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)] bg-black/40 backdrop-blur-sm p-3 rounded-xl border border-white/10">
+                  "Why your 2PM coffee crash is a sign of adrenals shutting down..."
+                </div>
+
+                <div class="flex items-center justify-center gap-2 text-xs font-mono text-emerald-400 bg-black/60 py-1 px-2.5 rounded-full mx-auto w-fit border border-emerald-500/20">
+                  <i data-lucide="zap" class="w-3 h-3"></i>
+                  <span>Simulated CTR: <b id="sandbox-ctr">4.2%</b></span>
+                </div>
+              </div>
+
+              <!-- Bottom CTA & Social Proof -->
+              <div class="relative z-20 space-y-2.5">
+                <div class="flex items-center gap-2">
+                  <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-brand-500 to-brand-cyan flex items-center justify-center text-xs font-bold text-white">L</div>
+                  <div class="text-xs">
+                    <div class="font-bold flex items-center gap-1">Lumina Nootropics <i data-lucide="badge-check" class="w-3.5 h-3.5 text-brand-cyan"></i></div>
+                    <div class="text-[10px] text-slate-300">Sponsored • Clinical Sleep Study</div>
+                  </div>
+                </div>
+
+                <!-- Interactive CTA Button inside video -->
+                <button id="sandbox-cta-btn" class="w-full bg-brand-emerald hover:bg-emerald-500 text-black font-extrabold text-xs py-2.5 rounded-xl shadow-lg flex items-center justify-center gap-1.5 transition-transform active:scale-95">
+                  <span id="sandbox-cta-text">Take 60s Focus Diagnostic</span>
+                  <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
+
+              <!-- Right Vertical Reaction Bar (TikTok/Reels style) -->
+              <div class="absolute right-3 bottom-24 flex flex-col items-center gap-4 z-20 text-white/90">
+                <div class="flex flex-col items-center">
+                  <div class="w-9 h-9 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center border border-white/10">
+                    <i data-lucide="heart" class="w-4 h-4 text-brand-rose fill-brand-rose"></i>
+                  </div>
+                  <span class="text-[10px] font-mono mt-0.5">24.8k</span>
+                </div>
+                <div class="flex flex-col items-center">
+                  <div class="w-9 h-9 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center border border-white/10">
+                    <i data-lucide="message-circle" class="w-4 h-4"></i>
+                  </div>
+                  <span class="text-[10px] font-mono mt-0.5">842</span>
+                </div>
+                <div class="flex flex-col items-center">
+                  <div class="w-9 h-9 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center border border-white/10">
+                    <i data-lucide="share-2" class="w-4 h-4"></i>
+                  </div>
+                  <span class="text-[10px] font-mono mt-0.5">3.1k</span>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Bottom Home Bar -->
+            <div class="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-32 h-1 bg-white/40 rounded-full z-30"></div>
+
+          </div>
+        </div>
+
+        <!-- Simulator Controls & Pacing Telemetry (Right 7 cols) -->
+        <div class="lg:col-span-7 space-y-5">
+          <div class="glass-card p-5 rounded-2xl border border-surface-800 space-y-4">
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+              <i data-lucide="sliders" class="w-4 h-4 text-brand-cyan"></i>
+              <span>Live Creative Pacing & Hook Switcher</span>
+            </h3>
+
+            <!-- Switch Hook on the fly -->
+            <div class="space-y-1.5">
+              <label class="text-xs text-slate-300 font-medium">Select Tested Hook Variation:</label>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2" id="sandbox-hook-selector">
+                <!-- Injected via JS -->
+              </div>
+            </div>
+
+            <!-- Change CTA Angle -->
+            <div class="space-y-1.5">
+              <label class="text-xs text-slate-300 font-medium">Select Call To Action (CTA):</label>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2" id="sandbox-cta-selector">
+                <!-- Injected via JS -->
+              </div>
+            </div>
+
+            <!-- Playback Controls -->
+            <div class="pt-3 border-t border-surface-800 flex items-center gap-3">
+              <button onclick="playSandboxSimulation()" id="sandbox-play-btn" class="flex items-center gap-2 bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold px-4 py-2.5 rounded-lg shadow-sm">
+                <i data-lucide="play" class="w-4 h-4"></i>
+                <span>Simulate 3s Hook Playback</span>
+              </button>
+              <button onclick="resetSandbox()" class="flex items-center gap-1.5 bg-surface-800 hover:bg-surface-750 text-slate-300 text-xs px-3 py-2.5 rounded-lg border border-surface-700">
+                <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                <span>Reset Frame</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Retention Curve Graph -->
+          <div class="glass-card p-5 rounded-2xl border border-surface-800">
+            <div class="flex items-center justify-between mb-2">
+              <div>
+                <h4 class="text-xs font-bold text-white uppercase tracking-wider font-mono">Predicted Retention Drop-Off Curve</h4>
+                <p class="text-[11px] text-slate-400">Real-time model trained on 140k historical video iterations</p>
+              </div>
+              <span class="text-xs font-mono text-emerald-400 font-bold" id="sandbox-predicted-retention">44.8% at 3.0s</span>
+            </div>
+            <div class="h-44 relative">
+              <canvas id="chart-sandbox-retention"></canvas>
+            </div>
+            <div class="mt-2 flex items-center justify-between text-[11px] text-slate-400">
+              <span>0.0s Hook Zone</span>
+              <span class="text-amber-400 font-mono">Critical Drop Barrier (3s)</span>
+              <span>15.0s Offer Climax</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ========================================== -->
+  <!-- MODAL 1: AI ANGLE GENERATOR -->
+  <!-- ========================================== -->
+  <div id="modal-ai-generator" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="glass-card max-w-2xl w-full rounded-2xl border border-surface-700 p-6 space-y-5 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+      
+      <div class="flex items-center justify-between border-b border-surface-800 pb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-600 to-brand-violet flex items-center justify-center text-amber-300">
+            <i data-lucide="sparkles" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-display font-bold text-white">AI Hypothesis Engine</h3>
+            <p class="text-xs text-slate-400">Turn raw product angles and consumer pain points into testable cards</p>
+          </div>
+        </div>
+        <button onclick="closeAiGeneratorModal()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-surface-800">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Generator Input Controls -->
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">Product Angle / Value Prop / Target Audience:</label>
+          <textarea id="ai-input-prompt" rows="3" class="w-full bg-surface-900 border border-surface-750 rounded-xl p-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-500" placeholder="e.g. Lumina focus drink: Targets remote workers experiencing afternoon energy crash. Contrarian angle: coffee spikes cortisol and increases brain fog..."></textarea>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Target Channel:</label>
+            <select id="ai-channel-select" class="w-full bg-surface-900 border border-surface-750 rounded-lg p-2 text-xs text-white">
+              <option value="tiktok">TikTok & IG Reels (Vertical Video)</option>
+              <option value="meta_feed">Meta Facebook / IG Feed (Carousel & Static)</option>
+              <option value="youtube">YouTube Shorts</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Primary Optimization KPI:</label>
+            <select id="ai-kpi-select" class="w-full bg-surface-900 border border-surface-750 rounded-lg p-2 text-xs text-white">
+              <option value="roas">ROAS (Return on Ad Spend)</option>
+              <option value="thumbstop">Thumbstop Rate (3s Hold)</option>
+              <option value="cvr">Purchase Conversion Rate (CVR)</option>
+            </select>
+          </div>
+        </div>
+
+        <button onclick="generateAiHypotheses()" id="btn-run-ai" class="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-brand-600 via-brand-500 to-brand-violet hover:opacity-95 text-white font-semibold text-xs py-3 rounded-xl shadow-lg shadow-brand-500/25 active:scale-[0.99] transition-all">
+          <i data-lucide="cpu" class="w-4 h-4"></i>
+          <span>Synthesize 3 Scientific Hypotheses</span>
+        </button>
+      </div>
+
+      <!-- Generated Results Container -->
+      <div id="ai-results-container" class="hidden space-y-3 pt-3 border-t border-surface-800">
+        <div class="flex items-center justify-between text-xs font-mono text-slate-400">
+          <span>AI Generated Candidates:</span>
+          <span class="text-brand-emerald flex items-center gap-1"><i data-lucide="check" class="w-3.5 h-3.5"></i> 3 Formulated</span>
+        </div>
+        <div id="ai-generated-cards" class="space-y-3 max-h-72 overflow-y-auto pr-1">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL 2: NEW HYPOTHESIS MANUAL FORM -->
+  <!-- ========================================== -->
+  <div id="modal-new-hypothesis" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="glass-card max-w-xl w-full rounded-2xl border border-surface-700 p-6 space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-surface-800 pb-3">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <i data-lucide="flask-conical" class="w-4 h-4 text-brand-indigo"></i>
+          <span>Create Experiment Hypothesis Card</span>
+        </h3>
+        <button onclick="closeNewHypothesisModal()" class="text-slate-400 hover:text-white p-1">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="new-hypo-form" onsubmit="handleCreateHypothesis(event)" class="space-y-3 text-xs">
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Experiment Title / Name:</label>
+          <input type="text" id="new-hypo-title" required placeholder="e.g. Cortisol Shock Hook vs Caffeine Energy" class="w-full bg-surface-900 border border-surface-750 rounded-lg p-2 text-white">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Angle Category:</label>
+            <select id="new-hypo-category" class="w-full bg-surface-900 border border-surface-750 rounded-lg p-2 text-white">
+              <option value="Pain-Agitation">Pain-Agitation</option>
+              <option value="Proof-Mechanism">Proof-Mechanism</option>
+              <option value="Status-Identity">Status-Identity</option>
+              <option value="Contrarian-Myth">Contrarian-Myth</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Target Channel:</label>
+            <select id="new-hypo-channel" class="w-full bg-surface-900 border border-surface-750 rounded-lg p-2 text-white">
+              <option value="TikTok Ads">TikTok Ads</option>
+              <option value="Meta Reels & Feed">Meta Reels & Feed</option>
+              <option value="YouTube Shorts">YouTube Shorts</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Opening Hook Execution (0s - 3s):</label>
+          <input type="text" id="new-hypo-hook" required placeholder="e.g. Why your afternoon espresso crash is biological sabotage..." class="w-full bg-surface-900 border border-surface-750 rounded-lg p-2 text-white">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Visual Format / Proof Mechanism:</label>
+          <input type="text" id="new-hypo-visual" required placeholder="e.g. Split-screen brain scan vs cellular hydration animation" class="w-full bg-surface-900 border border-surface-750 rounded-lg p-2 text-white">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Call to Action (CTA):</label>
+          <input type="text" id="new-hypo-cta" required placeholder="e.g. Claim 14-Day Deep Focus Sample Kit" class="w-full bg-surface-900 border border-surface-750 rounded-lg p-2 text-white">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Hypothesis Formula ("IF... THEN... BECAUSE..."):</label>
+          <textarea id="new-hypo-formula" rows="2" required placeholder="IF we position sleep debt as the root cause, THEN CVR will rise +30% BECAUSE tech workers fear burnout more than tiredness." class="w-full bg-surface-900 border border-surface-750 rounded-lg p-2 text-white"></textarea>
+        </div>
+
+        <div class="pt-3 border-t border-surface-800 flex justify-end gap-2">
+          <button type="button" onclick="closeNewHypothesisModal()" class="px-3 py-2 rounded-lg bg-surface-800 text-slate-300 hover:bg-surface-750">Cancel</button>
+          <button type="submit" class="px-4 py-2 rounded-lg bg-brand-600 hover:bg-brand-500 text-white font-semibold shadow-sm">Launch Test Card</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="border-t border-surface-850 bg-surface-950 py-4 mt-auto text-center text-xs text-slate-400">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-brand-cyan"></span>
+        <span class="font-mono text-slate-300">Hypoflow AI Engine</span>
+        <span>— Creative Experimentation Architecture</span>
+      </div>
+      <div class="flex items-center gap-4 text-[11px] text-slate-400">
+        <span>Built with Next.js, Tailwind CSS & Python</span>
+        <span>•</span>
+        <span>Simulated DTC Workspace</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Application Logic & Interactive State Script -->
+  <script>
+    // ==========================================
+    // INITIAL DATA REPOSITORY
+    // ==========================================
+    const INITIAL_HYPOTHESES = [
+      {
+        id: "HYP-101",
+        title: "Cortisol Alarmist vs Caffeine Energy",
+        category: "Pain-Agitation",
+        status: "winner",
+        channel: "TikTok Ads",
+        hook: {
+          type: "Shock Question",
+          text: "Why your 2PM coffee crash is a sign of adrenals shutting down...",
+          thumbstopRate: "44.8%"
+        },
+        visualAngle: {
+          format: "Split-Screen Microscope & Brain Scan",
+          tag: "Biological Proof"
+        },
+        cta: {
+          text: "Take 60s Focus Diagnostic",
+          cvr: "14.2%"
+        },
+        statement: "IF we reframe afternoon fatigue as adrenal stress rather than lack of caffeine, THEN Thumbstop will increase by +35% because customers seek root cause relief over another stimulant.",
+        metrics: {
+          spend: 4250,
+          impressions: 184000,
+          ctr: 4.12,
+          cvr: 4.85,
+          roas: 3.42,
+          confidence: 99.2,
+          lift: "+41.2%"
+        },
+        variantsCount: 4,
+        createdAt: "2026-11-01"
+      },
+      {
+        id: "HYP-102",
+        title: "Silicon Valley Tech Stack Framing",
+        category: "Status-Identity",
+        status: "active",
+        channel: "Meta Reels & Feed",
+        hook: {
+          type: "Insider Secret",
+          text: "The one compound every YC founder keeps on their desk that isn't Adderall...",
+          thumbstopRate: "39.4%"
+        },
+        visualAngle: {
+          format: "Desk Setup Minimalist B-Roll",
+          tag: "Aesthetic Flex"
+        },
+        cta: {
+          text: "Unlock 30-Day Founder Pack",
+          cvr: "8.6%"
+        },
+        statement: "IF we position the supplement as high-performance cognitive gear for operators, THEN AOV will increase by +20% because buyers anchor value to software productivity.",
+        metrics: {
+          spend: 3100,
+          impressions: 112000,
+          ctr: 3.25,
+          cvr: 3.40,
+          roas: 2.75,
+          confidence: 88.4,
+          lift: "+18.6%"
+        },
+        variantsCount: 3,
+        createdAt: "2026-11-03"
+      },
+      {
+        id: "HYP-103",
+        title: "Contrarian Myth: Cold Plunges Are Overrated",
+        category: "Contrarian-Myth",
+        status: "winner",
+        channel: "TikTok Ads",
+        hook: {
+          type: "Contrarian Take",
+          text: "Stop freezing in 40° water at 5am. Your dopaminergic receptors need this first...",
+          thumbstopRate: "47.1%"
+        },
+        visualAngle: {
+          format: "Podcast Mic + Reaction Hook",
+          tag: "Authority Interview"
+        },
+        cta: {
+          text: "Read Clinical Dopamine Whitepaper",
+          cvr: "12.8%"
+        },
+        statement: "IF we debunk extreme biohacking fads with a cellular pathway explanation, THEN Thumbstop rate will hit >45% due to controversy friction.",
+        metrics: {
+          spend: 5800,
+          impressions: 245000,
+          ctr: 4.65,
+          cvr: 5.10,
+          roas: 3.82,
+          confidence: 99.7,
+          lift: "+52.3%"
+        },
+        variantsCount: 5,
+        createdAt: "2026-10-28"
+      },
+      {
+        id: "HYP-104",
+        title: "Double-Blind Placebo Proof Mechanism",
+        category: "Proof-Mechanism",
+        status: "validating",
+        channel: "YouTube Shorts",
+        hook: {
+          type: "Scientific Chart Callout",
+          text: "This 28-day EEG readout proves where alpha brain waves actually trigger...",
+          thumbstopRate: "36.5%"
+        },
+        visualAngle: {
+          format: "3D Motion Render of Synapse",
+          tag: "Bio-Visualization"
+        },
+        cta: {
+          text: "Verify Study Data",
+          cvr: "9.1%"
+        },
+        statement: "IF we showcase actual EEG frequency bands within the first 1.5s, THEN skeptical B2B buyers will convert at 2x higher trust threshold.",
+        metrics: {
+          spend: 1850,
+          impressions: 76000,
+          ctr: 2.94,
+          cvr: 3.10,
+          roas: 2.15,
+          confidence: 76.5,
+          lift: "+8.4%"
+        },
+        variantsCount: 3,
+        createdAt: "2026-11-05"
+      },
+      {
+        id: "HYP-105",
+        title: "Cost per High-Focus Hour Comparison",
+        category: "Pain-Agitation",
+        status: "inconclusive",
+        channel: "Meta Reels & Feed",
+        hook: {
+          type: "Financial Comparison",
+          text: "You spend $7.50 on oat milk lattes every morning for 45 mins of jitters...",
+          thumbstopRate: "28.2%"
+        },
+        visualAngle: {
+          format: "Receipt Split vs Daily Dose",
+          tag: "Price Anchoring"
+        },
+        cta: {
+          text: "Calculate Your Focus ROI",
+          cvr: "5.4%"
+        },
+        statement: "IF we anchor the price to an overpriced daily coffee shop receipt, THEN conversion rate will surge among budget-sensitive freelancers.",
+        metrics: {
+          spend: 1400,
+          impressions: 62000,
+          ctr: 2.10,
+          cvr: 2.20,
+          roas: 1.45,
+          confidence: 42.1,
+          lift: "-4.2%"
+        },
+        variantsCount: 2,
+        createdAt: "2026-10-22"
+      }
+    ];
+
+    const INITIAL_VARIANTS = [
+      {
+        id: "VAR-101-A",
+        hypoId: "HYP-101",
+        name: "Cortisol Hook — Blue Grade UGC Selfie",
+        hookText: "Why your 2PM coffee crash is a sign of adrenals shutting down...",
+        visual: "Handheld phone, dark apartment lighting, wearable sleep graph",
+        spend: "$1,620",
+        thumbstop: "46.2%",
+        roas: "3.75x",
+        status: "Scaled (Winner)"
+      },
+      {
+        id: "VAR-101-B",
+        hypoId: "HYP-101",
+        name: "Cortisol Hook — Studio White Macro Bottle",
+        hookText: "Why your 2PM coffee crash is a sign of adrenals shutting down...",
+        visual: "Clean white studio, packshot in first second",
+        spend: "$890",
+        thumbstop: "24.1%",
+        roas: "1.62x",
+        status: "Killed"
+      },
+      {
+        id: "VAR-101-C",
+        hypoId: "HYP-101",
+        name: "Cortisol Hook — Screen Recording EEG App",
+        hookText: "Watch what happens to cortisol when you take this at 1:45 PM...",
+        visual: "Fast paced screen capture + voiceover",
+        spend: "$1,740",
+        thumbstop: "43.5%",
+        roas: "3.55x",
+        status: "Active"
+      },
+      {
+        id: "VAR-103-A",
+        hypoId: "HYP-103",
+        name: "Cold Plunge Debunk — Podcast Studio Clip",
+        hookText: "Stop freezing in 40° water at 5am. Your dopaminergic receptors need this first...",
+        visual: "Shure SM7B microphone, moody red neon background",
+        spend: "$3,450",
+        thumbstop: "48.2%",
+        roas: "4.10x",
+        status: "Scaled (Winner)"
+      },
+      {
+        id: "VAR-103-B",
+        hypoId: "HYP-103",
+        name: "Cold Plunge Debunk — Green Screen TikTok Commentary",
+        hookText: "Cold plunges might actually be sabotaging your afternoon energy...",
+        visual: "Green screen over news headline",
+        spend: "$2,350",
+        thumbstop: "44.6%",
+        roas: "3.40x",
+        status: "Active"
+      },
+      {
+        id: "VAR-102-A",
+        hypoId: "HYP-102",
+        name: "Founder Tech Stack — Overhead Desk B-Roll",
+        hookText: "The one compound every YC founder keeps on their desk that isn't Adderall...",
+        visual: "Mechanical keyboard, Herman Miller, Mac Studio",
+        spend: "$1,980",
+        thumbstop: "41.0%",
+        roas: "2.95x",
+        status: "Active"
+      }
+    ];
+
+    const INITIAL_PLAYBOOK_RULES = [
+      {
+        id: "RULE-01",
+        title: "The 3-Second Cortisol Reframe Paradox",
+        derivedFrom: "HYP-101 (Winner, +41.2% Lift)",
+        impact: "+3.4x ROAS on TikTok; +44.8% Thumbstop Rate",
+        description: "Leading with biological anxiety and adrenal exhaustion outperforms standard energy claims by 3.4x.",
+        doDirective: "Show biometric sleep data or brain activity heatmaps within 0.8s. State the negative symptom before introducing any solution.",
+        dontDirective: "Never show the product packaging in the first 2.5 seconds. Never start with 'Hey guys, check this out'.",
+        tag: "Hook Rule",
+        date: "Nov 05, 2026"
+      },
+      {
+        id: "RULE-02",
+        title: "Contrarian Biohacking Debunk Framework",
+        derivedFrom: "HYP-103 (Winner, +52.3% Lift)",
+        impact: "+47.1% Hook Retention; -38% Customer Acquisition Cost",
+        description: "Challenging mainstream high-friction health trends (e.g. cold plunges, 5am workouts) generates instant comment debate and algorithm reach.",
+        doDirective: "Use podcast mic framing with conversational tonality. Cite an exact neuro-chemical mechanism (e.g. 'adenosine receptors').",
+        dontDirective: "Do not sound salesy or accusatory toward the viewer. Frame it as insider industry whistleblowing.",
+        tag: "Visual & Narrative Rule",
+        date: "Nov 02, 2026"
+      },
+      {
+        id: "RULE-03",
+        title: "Diagnostic Quiz CTA Conversion Multiplier",
+        derivedFrom: "Multi-Experiment Synthesis (HYP-101 & HYP-104)",
+        impact: "14.2% CVR vs 5.4% on Direct 'Shop Now'",
+        description: "Prospects convert at 2.6x higher volume when guided into a self-assessment diagnostic rather than an immediate ecommerce storefront.",
+        doDirective: "Use copy: 'Take 60s Focus Diagnostic' or 'Calculate Your Sleep Deficit'. Keep questions under 4 steps.",
+        dontDirective: "Avoid generic buttons: 'Buy Now', 'Order Here', or 'Check Price'.",
+        tag: "CTA & Funnel Rule",
+        date: "Oct 30, 2026"
+      }
+    ];
+
+    // ==========================================
+    // APPLICATION STATE
+    // ==========================================
+    let state = {
+      brand: 'lumina',
+      hypotheses: [...INITIAL_HYPOTHESES],
+      variants: [...INITIAL_VARIANTS],
+      playbookRules: [...INITIAL_PLAYBOOK_RULES],
+      sandbox: {
+        timer: 0.0,
+        isPlaying: false,
+        intervalId: null,
+        selectedHookIdx: 0,
+        selectedCtaIdx: 0,
+        hooks: [
+          { text: "Why your 2PM coffee crash is a sign of adrenals shutting down...", angle: "Cortisol Shock", ctr: "4.2%", retention3s: 44.8 },
+          { text: "Stop freezing in 40° water at 5am. Your dopaminergic receptors need this first...", angle: "Contrarian Myth", ctr: "4.8%", retention3s: 47.1 },
+          { text: "The one compound every YC founder keeps on their desk that isn't Adderall...", angle: "Status-Identity", ctr: "3.6%", retention3s: 39.4 },
+          { text: "This 28-day EEG readout proves where alpha brain waves actually trigger...", angle: "Proof-Mechanism", ctr: "3.2%", retention3s: 36.5 }
+        ],
+        ctas: [
+          { text: "Take 60s Focus Diagnostic", cvr: "14.2%" },
+          { text: "Claim 14-Day Deep Focus Sample Kit", cvr: "11.5%" },
+          { text: "Shop Focus Formulation Now", cvr: "6.2%" },
+          { text: "Calculate Your Focus Deficit", cvr: "13.4%" }
+        ]
+      }
+    };
+
+    // Chart references
+    let chartHookInstance = null;
+    let chartVisualInstance = null;
+    let chartCtaInstance = null;
+    let chartSandboxInstance = null;
+
+    // ==========================================
+    // INITIALIZATION & TAB SWITCHING
+    // ==========================================
+    document.addEventListener("DOMContentLoaded", () => {
+      lucide.createIcons();
+      renderHypotheses();
+      renderVariants();
+      renderPlaybookRules();
+      initCharts();
+      initSandbox();
+      updateGlobalStats();
+      
+      const params = new URLSearchParams(window.location.search);
+      const initialTab = params.get('tab') || window.location.hash.replace('#', '');
+      if (initialTab && ['hypotheses', 'variants', 'attribution', 'playbook', 'sandbox'].includes(initialTab)) {
+        switchTab(initialTab);
+      }
+    });
+
+    function switchTab(tabId) {
+      const views = ['hypotheses', 'variants', 'attribution', 'playbook', 'sandbox'];
+      views.forEach(v => {
+        const el = document.getElementById(`view-${v}`);
+        const btn = document.getElementById(`tab-btn-${v}`);
+        if (el) {
+          if (v === tabId) {
+            el.classList.remove('hidden');
+          } else {
+            el.classList.add('hidden');
+          }
+        }
+        if (btn) {
+          if (v === tabId) {
+            btn.className = "tab-button flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all bg-brand-600 text-white shadow-sm";
+          } else {
+            btn.className = "tab-button flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all text-slate-400 hover:text-slate-200 hover:bg-surface-800";
+          }
+        }
+      });
+
+      // Update mobile tab buttons
+      const mobileBtns = document.querySelectorAll('.mobile-tab-btn');
+      mobileBtns.forEach((btn, index) => {
+        if (views[index] === tabId) {
+          btn.className = "mobile-tab-btn text-xs font-medium px-3 py-1.5 rounded-md bg-brand-600 text-white whitespace-nowrap";
+        } else {
+          btn.className = "mobile-tab-btn text-xs font-medium px-3 py-1.5 rounded-md text-slate-400 hover:text-white whitespace-nowrap";
+        }
+      });
+
+      if (tabId === 'attribution') {
+        setTimeout(renderAttributionCharts, 50);
+      } else if (tabId === 'sandbox') {
+        setTimeout(renderSandboxChart, 50);
+      }
+
+      lucide.createIcons();
+    }
+
+    function showToast(title, message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      
+      const borderColors = {
+        success: 'border-emerald-500/50 bg-surface-900/95 text-emerald-400',
+        info: 'border-brand-500/50 bg-surface-900/95 text-brand-400',
+        warning: 'border-amber-500/50 bg-surface-900/95 text-amber-400'
+      };
+
+      toast.className = `p-3.5 rounded-xl border backdrop-blur-md shadow-2xl pointer-events-auto transition-all duration-300 transform translate-x-full ${borderColors[type] || borderColors.info}`;
+      toast.innerHTML = `
+        <div class="flex items-start gap-2.5">
+          <i data-lucide="${type === 'success' ? 'check-circle-2' : type === 'warning' ? 'alert-triangle' : 'sparkles'}" class="w-4 h-4 mt-0.5 shrink-0"></i>
+          <div>
+            <div class="text-xs font-bold text-white">${title}</div>
+            <div class="text-[11px] text-slate-300 mt-0.5">${message}</div>
+          </div>
+        </div>
+      `;
+      container.appendChild(toast);
+      lucide.createIcons();
+
+      requestAnimationFrame(() => {
+        toast.classList.remove('translate-x-full');
+      });
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-x-full');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    // ==========================================
+    // HYPOTHESIS MODULE
+    // ==========================================
+    function renderHypotheses() {
+      const container = document.getElementById('hypotheses-grid');
+      const search = (document.getElementById('hypo-search')?.value || '').toLowerCase();
+      const statusFilter = document.getElementById('hypo-status-filter')?.value || 'all';
+      const catFilter = document.getElementById('hypo-category-filter')?.value || 'all';
+
+      const filtered = state.hypotheses.filter(h => {
+        const matchesSearch = h.title.toLowerCase().includes(search) || 
+                              h.hook.text.toLowerCase().includes(search) || 
+                              h.statement.toLowerCase().includes(search);
+        const matchesStatus = statusFilter === 'all' || h.status === statusFilter;
+        const matchesCat = catFilter === 'all' || h.category === catFilter;
+        return matchesSearch && matchesStatus && matchesCat;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full py-16 text-center text-slate-400">
+            <i data-lucide="inbox" class="w-10 h-10 mx-auto text-slate-600 mb-2"></i>
+            <p class="text-sm font-semibold">No hypotheses match your current filter.</p>
+            <button onclick="resetHypoFilters()" class="mt-3 text-xs text-brand-400 hover:underline">Reset Filters</button>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      container.innerHTML = filtered.map(h => {
+        const isWinner = h.status === 'winner';
+        const statusConfig = {
+          winner: { label: 'Winner (Confirmed)', color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' },
+          active: { label: 'Active Testing', color: 'bg-brand-500/10 text-brand-400 border-brand-500/30' },
+          validating: { label: 'Validating Sample', color: 'bg-amber-500/10 text-amber-400 border-amber-500/30' },
+          inconclusive: { label: 'Inconclusive', color: 'bg-slate-500/10 text-slate-400 border-slate-500/30' }
+        }[h.status] || { label: h.status, color: 'bg-slate-500/10 text-slate-400 border-slate-500/30' };
+
+        return `
+          <div class="glass-card glass-card-hover rounded-2xl p-5 border flex flex-col justify-between transition-all ${isWinner ? 'neon-border-emerald border-emerald-500/40' : 'border-surface-800'}">
+            
+            <!-- Top Card Header -->
+            <div>
+              <div class="flex items-center justify-between gap-2 mb-2.5">
+                <div class="flex items-center gap-2">
+                  <span class="font-mono text-xs font-bold text-slate-300 bg-surface-900 px-2 py-0.5 rounded border border-surface-750">${h.id}</span>
+                  <span class="text-[10px] font-mono px-2 py-0.5 rounded-full border ${statusConfig.color}">${statusConfig.label}</span>
+                </div>
+                <span class="text-[11px] text-slate-400 font-medium flex items-center gap-1">
+                  <i data-lucide="video" class="w-3 h-3"></i> ${h.channel}
+                </span>
+              </div>
+
+              <h3 class="text-sm font-bold text-white leading-snug mb-3">${h.title}</h3>
+
+              <!-- The Scientific Triangle: Hook, Visual, CTA -->
+              <div class="space-y-2 bg-surface-900/70 p-3 rounded-xl border border-surface-800/80 mb-3 text-xs">
+                <div>
+                  <div class="flex items-center justify-between text-[10px] uppercase font-mono text-slate-400">
+                    <span class="flex items-center gap-1"><i data-lucide="anchor" class="w-2.5 h-2.5 text-brand-cyan"></i> Hook (0s-3s)</span>
+                    <span class="text-emerald-400 font-mono font-bold">${h.hook.thumbstopRate} Hold</span>
+                  </div>
+                  <p class="text-[11px] text-slate-200 mt-0.5 line-clamp-2 italic">"${h.hook.text}"</p>
+                </div>
+
+                <div class="pt-1.5 border-t border-surface-800/60">
+                  <div class="flex items-center justify-between text-[10px] uppercase font-mono text-slate-400">
+                    <span class="flex items-center gap-1"><i data-lucide="eye" class="w-2.5 h-2.5 text-brand-indigo"></i> Visual Proof Angle</span>
+                    <span class="text-brand-indigo font-mono">${h.visualAngle.tag}</span>
+                  </div>
+                  <p class="text-[11px] text-slate-300 mt-0.5">${h.visualAngle.format}</p>
+                </div>
+
+                <div class="pt-1.5 border-t border-surface-800/60">
+                  <div class="flex items-center justify-between text-[10px] uppercase font-mono text-slate-400">
+                    <span class="flex items-center gap-1"><i data-lucide="arrow-right-circle" class="w-2.5 h-2.5 text-brand-emerald"></i> CTA</span>
+                    <span class="text-brand-emerald font-mono font-bold">${h.cta.cvr} CVR</span>
+                  </div>
+                  <p class="text-[11px] text-slate-300 mt-0.5 font-medium">"${h.cta.text}"</p>
+                </div>
+              </div>
+
+              <!-- Hypothesis Statement -->
+              <div class="text-[11px] text-slate-400 leading-relaxed bg-surface-950/40 p-2.5 rounded-lg border border-surface-850 mb-3">
+                <span class="text-brand-400 font-mono font-semibold">FORMULA:</span> ${h.statement}
+              </div>
+            </div>
+
+            <!-- Bottom Performance Metrics & Actions -->
+            <div class="pt-3 border-t border-surface-800/80 space-y-3">
+              <div class="grid grid-cols-3 gap-2 text-center">
+                <div class="bg-surface-900/60 p-1.5 rounded-lg border border-surface-800">
+                  <span class="text-[9px] text-slate-400 uppercase font-mono block">ROAS</span>
+                  <span class="text-xs font-bold font-mono text-white">${h.metrics.roas}x</span>
+                </div>
+                <div class="bg-surface-900/60 p-1.5 rounded-lg border border-surface-800">
+                  <span class="text-[9px] text-slate-400 uppercase font-mono block">Attributed Lift</span>
+                  <span class="text-xs font-bold font-mono text-brand-cyan">${h.metrics.lift}</span>
+                </div>
+                <div class="bg-surface-900/60 p-1.5 rounded-lg border border-surface-800">
+                  <span class="text-[9px] text-slate-400 uppercase font-mono block">Confidence</span>
+                  <span class="text-xs font-bold font-mono text-brand-emerald">${h.metrics.confidence}%</span>
+                </div>
+              </div>
+
+              <!-- Action Bar -->
+              <div class="flex items-center justify-between gap-2">
+                <button onclick="viewHypothesisVariants('${h.id}')" class="flex items-center gap-1 text-[11px] text-slate-300 hover:text-white py-1 px-2 rounded hover:bg-surface-800 transition-colors">
+                  <i data-lucide="layers" class="w-3 h-3 text-brand-cyan"></i>
+                  <span>${h.variantsCount} Variants</span>
+                </button>
+
+                ${isWinner ? `
+                  <button onclick="promoteHypothesisToPlaybook('${h.id}')" class="flex items-center gap-1 text-[11px] font-semibold text-white bg-gradient-to-r from-emerald-600 to-brand-emerald hover:opacity-90 py-1.5 px-2.5 rounded-lg shadow-sm">
+                    <i data-lucide="book-plus" class="w-3 h-3"></i>
+                    <span>Codify Playbook</span>
+                  </button>
+                ` : `
+                  <button onclick="markHypothesisWinner('${h.id}')" class="flex items-center gap-1 text-[11px] font-medium text-slate-300 hover:text-brand-emerald hover:bg-emerald-500/10 border border-surface-750 py-1 px-2 rounded transition-colors">
+                    <i data-lucide="trophy" class="w-3 h-3 text-amber-400"></i>
+                    <span>Declare Winner</span>
+                  </button>
+                `}
+              </div>
+            </div>
+
+          </div>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    function filterHypotheses() {
+      renderHypotheses();
+    }
+
+    function resetHypoFilters() {
+      document.getElementById('hypo-search').value = '';
+      document.getElementById('hypo-status-filter').value = 'all';
+      document.getElementById('hypo-category-filter').value = 'all';
+      renderHypotheses();
+    }
+
+    function viewHypothesisVariants(hypoId) {
+      switchTab('variants');
+      showToast("Filtered Variants", `Displaying asset mapping for ${hypoId}`, "info");
+    }
+
+    function markHypothesisWinner(hypoId) {
+      const hypo = state.hypotheses.find(h => h.id === hypoId);
+      if (!hypo) return;
+      hypo.status = 'winner';
+      hypo.metrics.confidence = 99.4;
+      hypo.metrics.lift = "+46.5%";
+      
+      confetti({
+        particleCount: 80,
+        spread: 60,
+        origin: { y: 0.6 }
+      });
+
+      renderHypotheses();
+      updateGlobalStats();
+      showToast("Hypothesis Validated!", `${hypo.id} is now declared a Statistically Confirmed Winner.`, "success");
+    }
+
+    function promoteHypothesisToPlaybook(hypoId) {
+      const hypo = state.hypotheses.find(h => h.id === hypoId);
+      if (!hypo) return;
+
+      const newRuleId = `RULE-${String(state.playbookRules.length + 1).padStart(2, '0')}`;
+      const newRule = {
+        id: newRuleId,
+        title: `${hypo.title} Operational Rule`,
+        derivedFrom: `${hypo.id} (${hypo.metrics.lift} Lift)`,
+        impact: `${hypo.metrics.roas}x ROAS; ${hypo.hook.thumbstopRate} Hook Retention`,
+        description: `Automated guideline codified from winning hypothesis ${hypo.id}. Proven on ${hypo.channel}.`,
+        doDirective: `Execute hook: "${hypo.hook.text}". Pair with ${hypo.visualAngle.format}.`,
+        dontDirective: `Never use generic unverified statements. Avoid product display without proof mechanism.`,
+        tag: `${hypo.category} Rule`,
+        date: "Just now"
+      };
+
+      state.playbookRules.unshift(newRule);
+      
+      confetti({
+        particleCount: 120,
+        spread: 80,
+        origin: { y: 0.5 }
+      });
+
+      showToast("Codified to Playbook Engine", `Generated ${newRuleId} from ${hypo.id}`, "success");
+      switchTab('playbook');
+      renderPlaybookRules();
+      updateGlobalStats();
+    }
+
+    function simulateTrafficBatch() {
+      state.hypotheses.forEach(h => {
+        const deltaSpend = Math.floor(Math.random() * 400) + 150;
+        h.metrics.spend += deltaSpend;
+        h.metrics.impressions += deltaSpend * 40;
+        if (h.status === 'validating') {
+          h.metrics.confidence = Math.min(99.8, +(h.metrics.confidence + 4.2).toFixed(1));
+          if (h.metrics.confidence > 95.0) {
+            h.status = 'winner';
+          }
+        }
+      });
+      renderHypotheses();
+      updateGlobalStats();
+      showToast("Simulated 2,500 Ad Impressions", "Telemetry and Bayesian confidence scores refreshed.", "info");
+    }
+
+    // ==========================================
+    // VARIANT TRACKING MODULE
+    // ==========================================
+    function renderVariants() {
+      const tbody = document.getElementById('variants-table-body');
+      tbody.innerHTML = state.variants.map(v => {
+        const isScaled = v.status.includes('Winner') || v.status.includes('Scaled');
+        const isKilled = v.status.includes('Killed');
+        
+        return `
+          <tr class="hover:bg-surface-850/60 transition-colors">
+            <td class="py-3.5 px-4">
+              <div class="font-mono font-bold text-brand-cyan">${v.id}</div>
+              <div class="text-[11px] text-slate-300 font-medium">${v.name}</div>
+            </td>
+            <td class="py-3.5 px-4 font-mono text-xs">
+              <span class="bg-surface-900 border border-surface-750 px-2 py-0.5 rounded text-slate-300">${v.hypoId}</span>
+            </td>
+            <td class="py-3.5 px-4 max-w-xs">
+              <div class="text-xs text-slate-200 line-clamp-1 italic">"${v.hookText}"</div>
+            </td>
+            <td class="py-3.5 px-4 text-xs text-slate-300">
+              ${v.visual}
+            </td>
+            <td class="py-3.5 px-4 text-right font-mono text-white font-semibold">
+              ${v.spend}
+            </td>
+            <td class="py-3.5 px-4 text-right font-mono font-bold text-emerald-400">
+              ${v.thumbstop}
+            </td>
+            <td class="py-3.5 px-4 text-right font-mono font-bold ${parseFloat(v.roas) >= 3.0 ? 'text-brand-cyan' : 'text-slate-300'}">
+              ${v.roas}
+            </td>
+            <td class="py-3.5 px-4 text-center">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-mono ${isScaled ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : isKilled ? 'bg-rose-500/10 text-rose-400 border border-rose-500/30' : 'bg-brand-500/10 text-brand-400 border border-brand-500/30'}">
+                ${v.status}
+              </span>
+            </td>
+            <td class="py-3.5 px-4 text-center">
+              <div class="flex items-center justify-center gap-1.5">
+                <button onclick="previewVariantInSandbox('${v.id}')" title="Preview in Ad Studio" class="p-1 rounded hover:bg-surface-750 text-slate-400 hover:text-white">
+                  <i data-lucide="smartphone" class="w-3.5 h-3.5"></i>
+                </button>
+                <button onclick="toggleVariantStatus('${v.id}')" title="Scale or Kill" class="p-1 rounded hover:bg-surface-750 text-slate-400 hover:text-brand-emerald">
+                  <i data-lucide="power" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+      lucide.createIcons();
+    }
+
+    function toggleVariantStatus(varId) {
+      const variant = state.variants.find(v => v.id === varId);
+      if (!variant) return;
+      if (variant.status.includes('Killed')) {
+        variant.status = 'Active';
+        showToast("Variant Reactivated", `${varId} is back in testing pool.`, "info");
+      } else if (variant.status.includes('Active')) {
+        variant.status = 'Scaled (Winner)';
+        showToast("Variant Scaled", `Budget increased on ${varId}`, "success");
+      } else {
+        variant.status = 'Killed';
+        showToast("Variant Paused", `${varId} spend disabled.`, "warning");
+      }
+      renderVariants();
+    }
+
+    function previewVariantInSandbox(varId) {
+      const variant = state.variants.find(v => v.id === varId);
+      if (!variant) return;
+      switchTab('sandbox');
+      document.getElementById('sandbox-hook-caption').innerText = `"${variant.hookText}"`;
+      document.getElementById('sandbox-angle-tag').innerText = variant.name;
+      showToast("Loaded in Ad Studio", `Now testing: ${varId}`, "info");
+    }
+
+    // ==========================================
+    // PLAYBOOK ENGINE MODULE
+    // ==========================================
+    function renderPlaybookRules() {
+      const list = document.getElementById('playbook-rules-list');
+      list.innerHTML = state.playbookRules.map(r => `
+        <div class="glass-card rounded-2xl p-5 border border-surface-800 space-y-3">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-surface-800/80 pb-3">
+            <div class="flex items-center gap-2.5">
+              <span class="font-mono text-xs font-bold text-brand-violet bg-brand-violet/10 border border-brand-violet/20 px-2.5 py-0.5 rounded">${r.id}</span>
+              <h3 class="text-sm font-bold text-white">${r.title}</h3>
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-surface-900 border border-surface-750 text-slate-400">${r.tag}</span>
+            </div>
+            <div class="flex items-center gap-3 text-xs">
+              <span class="text-slate-400 font-mono text-[11px]">${r.derivedFrom}</span>
+              <span class="text-brand-emerald font-semibold font-mono text-[11px]">${r.impact}</span>
+            </div>
+          </div>
+
+          <p class="text-xs text-slate-300 leading-relaxed">${r.description}</p>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1 text-xs">
+            <div class="bg-emerald-950/20 border border-emerald-500/20 p-3 rounded-xl">
+              <div class="text-[10px] font-mono font-bold text-emerald-400 uppercase flex items-center gap-1.5 mb-1">
+                <i data-lucide="check" class="w-3.5 h-3.5"></i> DO (Production Requirement)
+              </div>
+              <p class="text-[11px] text-emerald-200/90 leading-normal">${r.doDirective}</p>
+            </div>
+
+            <div class="bg-rose-950/20 border border-rose-500/20 p-3 rounded-xl">
+              <div class="text-[10px] font-mono font-bold text-rose-400 uppercase flex items-center gap-1.5 mb-1">
+                <i data-lucide="x" class="w-3.5 h-3.5"></i> DON'T (Creative Anti-Pattern)
+              </div>
+              <p class="text-[11px] text-rose-200/90 leading-normal">${r.dontDirective}</p>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between pt-1 text-[11px] text-slate-500">
+            <span>Codified automatically via Hypoflow Attribution Engine</span>
+            <span>${r.date}</span>
+          </div>
+        </div>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    function exportPlaybookMarkdown() {
+      let md = `# HYPOFLOW AI — BRAND CREATIVE PLAYBOOK\nProject: Lumina Nootropics (DTC)\nGenerated: ${new Date().toISOString()}\n\n`;
+      state.playbookRules.forEach(r => {
+        md += `## [${r.id}] ${r.title}\n`;
+        md += `- **Origin**: ${r.derivedFrom}\n`;
+        md += `- **Performance Lift**: ${r.impact}\n`;
+        md += `- **Thesis**: ${r.description}\n`;
+        md += `- **DO**: ${r.doDirective}\n`;
+        md += `- **DON'T**: ${r.dontDirective}\n\n`;
+      });
+
+      const blob = new Blob([md], { type: 'text/markdown' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `hypoflow-playbook-${state.brand}.md`;
+      a.click();
+      URL.revokeObjectURL(url);
+
+      showToast("Playbook Exported", "Brand guidelines downloaded as Markdown.", "success");
+    }
+
+    // ==========================================
+    // AD STUDIO SANDBOX MODULE
+    // ==========================================
+    function initSandbox() {
+      // Render Hook Selectors
+      const hookContainer = document.getElementById('sandbox-hook-selector');
+      hookContainer.innerHTML = state.sandbox.hooks.map((h, idx) => `
+        <button onclick="selectSandboxHook(${idx})" class="text-left p-2.5 rounded-xl border transition-all text-xs ${idx === state.sandbox.selectedHookIdx ? 'bg-brand-600/20 border-brand-500 text-white font-semibold' : 'bg-surface-900 border-surface-800 text-slate-300 hover:border-surface-700'}">
+          <div class="text-[10px] font-mono text-brand-cyan uppercase">${h.angle}</div>
+          <div class="line-clamp-2 mt-0.5 text-[11px]">"${h.text}"</div>
+        </button>
+      `).join('');
+
+      // Render CTA Selectors
+      const ctaContainer = document.getElementById('sandbox-cta-selector');
+      ctaContainer.innerHTML = state.sandbox.ctas.map((c, idx) => `
+        <button onclick="selectSandboxCta(${idx})" class="text-left p-2 rounded-xl border transition-all text-xs ${idx === state.sandbox.selectedCtaIdx ? 'bg-emerald-600/20 border-emerald-500 text-white font-semibold' : 'bg-surface-900 border-surface-800 text-slate-300 hover:border-surface-700'}">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px]">${c.text}</span>
+            <span class="text-[10px] font-mono text-emerald-400 font-bold">${c.cvr}</span>
+          </div>
+        </button>
+      `).join('');
+
+      updateSandboxScreen();
+    }
+
+    function selectSandboxHook(idx) {
+      state.sandbox.selectedHookIdx = idx;
+      initSandbox();
+      updateSandboxScreen();
+      renderSandboxChart();
+    }
+
+    function selectSandboxCta(idx) {
+      state.sandbox.selectedCtaIdx = idx;
+      initSandbox();
+      updateSandboxScreen();
+    }
+
+    function updateSandboxScreen() {
+      const hook = state.sandbox.hooks[state.sandbox.selectedHookIdx];
+      const cta = state.sandbox.ctas[state.sandbox.selectedCtaIdx];
+
+      document.getElementById('sandbox-angle-tag').innerText = hook.angle;
+      document.getElementById('sandbox-hook-caption').innerText = `"${hook.text}"`;
+      document.getElementById('sandbox-ctr').innerText = hook.ctr;
+      document.getElementById('sandbox-cta-text').innerText = cta.text;
+      document.getElementById('sandbox-predicted-retention').innerText = `${hook.retention3s}% at 3.0s`;
+    }
+
+    function playSandboxSimulation() {
+      const btn = document.getElementById('sandbox-play-btn');
+      const timerEl = document.getElementById('sandbox-timer');
+      const screen = document.getElementById('sandbox-screen');
+      
+      if (state.sandbox.isPlaying) {
+        clearInterval(state.sandbox.intervalId);
+        state.sandbox.isPlaying = false;
+        btn.innerHTML = `<i data-lucide="play" class="w-4 h-4"></i><span>Resume 3s Playback</span>`;
+        lucide.createIcons();
+        return;
+      }
+
+      state.sandbox.isPlaying = true;
+      btn.innerHTML = `<i data-lucide="pause" class="w-4 h-4"></i><span>Pause Playback</span>`;
+      lucide.createIcons();
+
+      // Dynamic color shift to simulate video playback
+      screen.classList.remove('from-slate-900', 'via-indigo-950');
+      screen.classList.add('from-indigo-900', 'via-purple-950');
+
+      state.sandbox.intervalId = setInterval(() => {
+        state.sandbox.timer += 0.1;
+        timerEl.innerText = `${state.sandbox.timer.toFixed(1)}s / 3.0s`;
+
+        if (state.sandbox.timer >= 3.0) {
+          clearInterval(state.sandbox.intervalId);
+          state.sandbox.isPlaying = false;
+          btn.innerHTML = `<i data-lucide="check" class="w-4 h-4 text-emerald-400"></i><span>Thumbstop Reached!</span>`;
+          lucide.createIcons();
+          showToast("Thumbstop Target Cleared", "Audience retention exceeded 3.0s mark.", "success");
+        }
+      }, 100);
+    }
+
+    function resetSandbox() {
+      clearInterval(state.sandbox.intervalId);
+      state.sandbox.isPlaying = false;
+      state.sandbox.timer = 0.0;
+      document.getElementById('sandbox-timer').innerText = "0.0s / 3.0s";
+      document.getElementById('sandbox-play-btn').innerHTML = `<i data-lucide="play" class="w-4 h-4"></i><span>Simulate 3s Hook Playback</span>`;
+      const screen = document.getElementById('sandbox-screen');
+      screen.classList.add('from-slate-900', 'via-indigo-950');
+      screen.classList.remove('from-indigo-900', 'via-purple-950');
+      lucide.createIcons();
+    }
+
+    // ==========================================
+    // CHARTS RENDERING
+    // ==========================================
+    function initCharts() {
+      Chart.defaults.color = '#94A3B8';
+      Chart.defaults.font.family = '"JetBrains Mono", monospace';
+      Chart.defaults.font.size = 10;
+    }
+
+    function renderAttributionCharts() {
+      // 1. Hook Attribution Chart
+      const ctxHook = document.getElementById('chart-hook-attribution')?.getContext('2d');
+      if (ctxHook) {
+        if (chartHookInstance) chartHookInstance.destroy();
+        chartHookInstance = new Chart(ctxHook, {
+          type: 'bar',
+          data: {
+            labels: ['Contrarian Myth', 'Pain-Agitation', 'Proof Mechanism', 'Status Identity', 'Generic Promo'],
+            datasets: [{
+              label: 'Attributed ROAS',
+              data: [3.82, 3.42, 2.75, 2.15, 1.20],
+              backgroundColor: ['#10B981', '#06B6D4', '#6366F1', '#8B5CF6', '#475569'],
+              borderRadius: 6,
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                ticks: { callback: v => v + 'x' }
+              },
+              x: {
+                grid: { display: false }
+              }
+            }
+          }
+        });
+      }
+
+      // 2. Visual Format Retention Chart
+      const ctxVisual = document.getElementById('chart-visual-retention')?.getContext('2d');
+      if (ctxVisual) {
+        if (chartVisualInstance) chartVisualInstance.destroy();
+        chartVisualInstance = new Chart(ctxVisual, {
+          type: 'doughnut',
+          data: {
+            labels: ['Microscope & EEG', 'Podcast Setup', 'Desk Setup B-Roll', 'Standard UGC'],
+            datasets: [{
+              data: [46.2, 32.5, 14.1, 7.2],
+              backgroundColor: ['#6366F1', '#06B6D4', '#10B981', '#334155'],
+              borderWidth: 0
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'bottom',
+                labels: { boxWidth: 10, padding: 12, color: '#CBD5E1' }
+              }
+            },
+            cutout: '68%'
+          }
+        });
+      }
+
+      // 3. CTA CVR Chart
+      const ctxCta = document.getElementById('chart-cta-cvr')?.getContext('2d');
+      if (ctxCta) {
+        if (chartCtaInstance) chartCtaInstance.destroy();
+        chartCtaInstance = new Chart(ctxCta, {
+          type: 'line',
+          data: {
+            labels: ['Day 1', 'Day 5', 'Day 10', 'Day 15', 'Day 20', 'Day 25', 'Day 30'],
+            datasets: [
+              {
+                label: 'Diagnostic Quiz CTA',
+                data: [11.2, 12.0, 13.5, 14.2, 13.8, 14.5, 14.6],
+                borderColor: '#10B981',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                fill: true,
+                tension: 0.3
+              },
+              {
+                label: 'Direct "Shop Now"',
+                data: [6.1, 5.8, 5.5, 5.9, 5.2, 5.4, 5.3],
+                borderColor: '#64748B',
+                borderDash: [4, 4],
+                fill: false,
+                tension: 0.3
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { position: 'bottom', labels: { boxWidth: 10, color: '#CBD5E1' } }
+            },
+            scales: {
+              y: {
+                grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                ticks: { callback: v => v + '%' }
+              },
+              x: { grid: { display: false } }
+            }
+          }
+        });
+      }
+    }
+
+    function renderSandboxChart() {
+      const ctxSandbox = document.getElementById('chart-sandbox-retention')?.getContext('2d');
+      if (!ctxSandbox) return;
+      if (chartSandboxInstance) chartSandboxInstance.destroy();
+
+      const hook = state.sandbox.hooks[state.sandbox.selectedHookIdx];
+      const startPoint = 100;
+      const point3s = hook.retention3s;
+      const point15s = +(point3s * 0.58).toFixed(1);
+
+      chartSandboxInstance = new Chart(ctxSandbox, {
+        type: 'line',
+        data: {
+          labels: ['0.0s', '1.0s', '2.0s', '3.0s (Barrier)', '5.0s', '8.0s', '12.0s', '15.0s'],
+          datasets: [{
+            label: 'Predicted Retention %',
+            data: [100, 84, 62, point3s, point3s - 5, point3s - 10, point15s + 4, point15s],
+            borderColor: '#06B6D4',
+            backgroundColor: 'rgba(6, 182, 212, 0.15)',
+            fill: true,
+            tension: 0.3,
+            pointBackgroundColor: '#06B6D4'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: {
+              min: 0,
+              max: 100,
+              grid: { color: 'rgba(255, 255, 255, 0.05)' },
+              ticks: { callback: v => v + '%' }
+            },
+            x: { grid: { display: false } }
+          }
+        }
+      });
+    }
+
+    // ==========================================
+    // MODAL & AI ENGINE GENERATION
+    // ==========================================
+    function openAiGeneratorModal() {
+      document.getElementById('modal-ai-generator').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeAiGeneratorModal() {
+      document.getElementById('modal-ai-generator').classList.add('hidden');
+    }
+
+    function openNewHypothesisModal() {
+      document.getElementById('modal-new-hypothesis').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeNewHypothesisModal() {
+      document.getElementById('modal-new-hypothesis').classList.add('hidden');
+    }
+
+    function handleCreateHypothesis(event) {
+      event.preventDefault();
+      const title = document.getElementById('new-hypo-title').value;
+      const category = document.getElementById('new-hypo-category').value;
+      const channel = document.getElementById('new-hypo-channel').value;
+      const hookText = document.getElementById('new-hypo-hook').value;
+      const visual = document.getElementById('new-hypo-visual').value;
+      const ctaText = document.getElementById('new-hypo-cta').value;
+      const formula = document.getElementById('new-hypo-formula').value;
+
+      const newId = `HYP-${100 + state.hypotheses.length + 1}`;
+      const newCard = {
+        id: newId,
+        title: title,
+        category: category,
+        status: "active",
+        channel: channel,
+        hook: {
+          type: "Custom Hook",
+          text: hookText,
+          thumbstopRate: "38.5% (est.)"
+        },
+        visualAngle: {
+          format: visual,
+          tag: "Custom Setup"
+        },
+        cta: {
+          text: ctaText,
+          cvr: "4.5% (est.)"
+        },
+        statement: formula,
+        metrics: {
+          spend: 150,
+          impressions: 4800,
+          ctr: 3.10,
+          cvr: 3.20,
+          roas: 2.10,
+          confidence: 65.0,
+          lift: "+12.0%"
+        },
+        variantsCount: 1,
+        createdAt: new Date().toISOString().split('T')[0]
+      };
+
+      state.hypotheses.unshift(newCard);
+      closeNewHypothesisModal();
+      renderHypotheses();
+      updateGlobalStats();
+      showToast("Hypothesis Launched", `${newId} added to active testing board.`, "success");
+    }
+
+    function generateAiHypotheses() {
+      const btn = document.getElementById('btn-run-ai');
+      btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Synthesizing Hypotheses via Kiro AI...</span>`;
+      lucide.createIcons();
+
+      setTimeout(() => {
+        btn.innerHTML = `<i data-lucide="cpu" class="w-4 h-4"></i><span>Synthesize 3 Scientific Hypotheses</span>`;
+        lucide.createIcons();
+
+        const resultsContainer = document.getElementById('ai-results-container');
+        resultsContainer.classList.remove('hidden');
+
+        const cardsContainer = document.getElementById('ai-generated-cards');
+        const generatedSamples = [
+          {
+            title: "Cortisol Alarmist: Afternoon Adrenal Shutdown",
+            cat: "Pain-Agitation",
+            hook: "Your 2PM coffee crash isn't laziness — it's your adrenal glands signaling cortisol exhaustion.",
+            visual: "Split-screen microscope blood flow vs slow-motion desk worker rubbing temples",
+            cta: "Take 60s Focus Diagnostic",
+            rationale: "Targets psychological anxiety over productivity shame; creates urgent need for biochemical balance."
+          },
+          {
+            title: "Contrarian Debunk: Why Caffeine Spikes Create Brain Fog",
+            cat: "Contrarian-Myth",
+            hook: "Stop drinking cold brew on an empty stomach. Neuroscientists just proved it blocks adenosine cleanup.",
+            visual: "3D neurotransmitter animation showing receptor clogging",
+            cta: "View Alpha Wave Brain Scan",
+            rationale: "Subverts user expectation and creates strong curiosity gap in first 2 seconds."
+          },
+          {
+            title: "Silicon Valley Secret: The Non-Stimulant Stack",
+            cat: "Status-Identity",
+            hook: "Every Series B founder I know stopped taking Adderall for this specific nootropic blend...",
+            visual: "Minimalist desk B-roll with sleek obsidian bottle beside mechanical keyboard",
+            cta: "Claim 14-Day Executive Sample",
+            rationale: "Triggers elite operator aspirational status; lifts AOV by associating with high earners."
+          }
+        ];
+
+        cardsContainer.innerHTML = generatedSamples.map((s, idx) => `
+          <div class="bg-surface-900 p-3.5 rounded-xl border border-surface-750 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-white">${s.title}</span>
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-brand-500/10 text-brand-400 border border-brand-500/20">${s.cat}</span>
+            </div>
+            <div class="text-[11px] text-slate-300">
+              <b class="text-brand-cyan">Hook:</b> "${s.hook}"
+            </div>
+            <div class="text-[11px] text-slate-400">
+              <b class="text-brand-indigo">Proof Visual:</b> ${s.visual}
+            </div>
+            <div class="pt-2 flex items-center justify-between">
+              <span class="text-[10px] text-slate-400 font-mono">Predicted Lift: <b class="text-emerald-400">+38% ROAS</b></span>
+              <button onclick="adoptAiHypothesis(${idx})" class="flex items-center gap-1 text-[11px] font-semibold bg-brand-600 hover:bg-brand-500 text-white px-2.5 py-1 rounded-lg">
+                <i data-lucide="plus" class="w-3 h-3"></i> Add to Test Board
+              </button>
+            </div>
+          </div>
+        `).join('');
+
+        lucide.createIcons();
+      }, 900);
+    }
+
+    function adoptAiHypothesis(idx) {
+      showToast("Hypothesis Added!", "New test card formulated and pushed to experiment board.", "success");
+      closeAiGeneratorModal();
+      simulateTrafficBatch();
+    }
+
+    function updateGlobalStats() {
+      const activeCount = state.hypotheses.filter(h => h.status === 'active' || h.status === 'winner').length;
+      const winnersCount = state.hypotheses.filter(h => h.status === 'winner').length;
+      const winRate = ((winnersCount / state.hypotheses.length) * 100).toFixed(1);
+
+      document.getElementById('stat-active-hypo').innerText = activeCount;
+      document.getElementById('stat-win-rate').innerText = `${winRate}%`;
+      document.getElementById('stat-rules-count').innerText = state.playbookRules.length;
+      document.getElementById('badge-hypo-count').innerText = state.hypotheses.length;
+      document.getElementById('badge-variant-count').innerText = state.variants.length;
+    }
+
+    function changeBrand(brandKey) {
+      state.brand = brandKey;
+      showToast("Workspace Switched", `Active brand updated to ${brandKey.toUpperCase()}`, "info");
+    }
+  </script>
+</body>
+</html>
